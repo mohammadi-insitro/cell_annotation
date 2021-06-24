@@ -1,0 +1,41 @@
+source("functions.R")
+aces = readr::read_rds("ACTIONet/all_in_one_filtered.rds")
+all.markers = readr::read_rds("markers.rds")
+require(VISION)
+method = "VISION"
+
+require(VISION)
+method = "VISION"
+
+perf = list()
+scores = list()
+labels = list()
+
+for(i in 1:length(aces)) {
+	  dataset = names(aces)[[i]]
+  print(dataset)
+
+    ace = aces[[i]]
+    markers = all.markers[[i]]
+      true_labels = ace$Labels
+
+      mm = ACTIONet:::.preprocess_annotation_markers(lapply(markers, toupper), rownames(ace))
+        markers = apply(mm, 2, function(x) toupper(rownames(mm)[x > 0]))
+
+        annot = run_VISION(ace, markers, 42)
+	  labels[[dataset]] = annot$Labels
+	  scores[[dataset]] = annot$scores
+	    obj = annot$obj
+	    readr::write_rds(obj, sprintf("results/VISION_%s.rds", dataset))
+
+
+	      perf[[dataset]] = assess.annotation(ace, labels = labels[[dataset]], true_labels = true_labels, scores = scores[[dataset]], exp_name = paste(dataset, method, sep = "_"))
+}
+perfs = do.call(rbind, perf)
+readr::write_rds(perfs, "results/VISION_perfs.rds")
+readr::write_rds(scores, "results/VISION_scores.rds")
+readr::write_rds(labels, "results/VISION_labels.rds")
+
+
+
+

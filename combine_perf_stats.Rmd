@@ -1,0 +1,71 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+ACTIONet.perfs = readRDS("~/results/ACTIONet_perfs.rds")
+ACTIONet_new.perfs = readRDS("~/results/ACTIONet_new_deep_perfs.rds")
+ACTIONet_new_noTFIDF.perfs = readRDS("~/results/ACTIONet_new_deep_noTFIDF_perfs.rds")
+ACTIONet_new_shallow.perfs = readRDS("~/results/ACTIONet_new_perfs.rds")
+VISION.perfs = readRDS("~/results/VISION_perfs.rds")
+SCINA.perfs = readRDS("~/results/SCINA_perfs.rds")
+Garnett.perfs = readRDS("~/results/garnett_perfs.rds")
+
+all.perfs = list(ACTIONet.perfs = ACTIONet.perfs, ACTIONet_new.perfs = ACTIONet_new.perfs, ACTIONet_new_noTFIDF.perfs = ACTIONet_new_noTFIDF.perfs, ACTIONet_new_shallow.perfs = ACTIONet_new_shallow.perfs, VISION.perfs = VISION.perfs, SCINA.perfs = SCINA.perfs, Garnett.perfs = Garnett.perfs)
+
+ARIs = sapply(all.perfs, function(x) x[, 1])
+
+NMIs = sapply(all.perfs, function(x) x[, 2])
+
+  
+```
+
+
+```{r}
+require(ggpubr)
+DF = reshape2::melt(ARIs)
+colnames(DF) = c("Dataset", "Method", "ARI")
+DF$Method = factor(as.character(DF$Method), colnames(ARIs)[order(fastColMeans(ARIs), decreasing = T)])
+ARI.gp = ggbarplot(DF, "Dataset", "ARI",
+  fill = "Method", color = "Method", palette = "Dark2",
+  position = position_dodge(0.9))+ theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+pdf("~/benchmarks/datasets/combined_ARIs.pdf", width = 12)
+plot(ARI.gp)
+dev.off()
+
+```
+
+```{r}
+require(ggpubr)
+DF = reshape2::melt(NMIs)
+colnames(DF) = c("Dataset", "Method", "NMI")
+DF$Method = factor(as.character(DF$Method), colnames(NMIs)[order(fastColMeans(NMIs), decreasing = T)])
+NMI.gp = ggbarplot(DF, "Dataset", "NMI",
+  fill = "Method", color = "Method", palette = "Dark2",
+  position = position_dodge(0.9))+ theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+pdf("~/benchmarks/datasets/combined_NMIs.pdf", width = 12)
+plot(NMI.gp)
+dev.off()
+
+```
+
+
+
+```{r}
+# scores = readr::read_rds("~/results/ACTIONet_new_scores.rds")
+
+plot(density(ss))
+k = 3
+ll = colnames(scores[[k]])[apply(scores[[k]], 1, which.max)]
+ss = apply(scores[[k]], 1, max)
+plot.ACTIONet(aces[[k]], ll, trans_attr = ss)
+plot.ACTIONet(aces[[k]], aces[[k]]$Labels)
+
+plot.ACTIONet(aces[[k]], ss < 1)
+
+
+```
+

@@ -1,0 +1,51 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+devtools::load_all("~/ACTIONet/")
+source("functions.R")
+
+```
+
+```{r}
+aces = readr::read_rds("ACTIONet/all_in_one_filtered.rds")
+all.markers = readr::read_rds("markers.rds")
+
+```
+
+
+```{r}
+require(ACTIONet)
+method = "ACTIONet"
+
+perf = list()
+scores = list()
+labels = list()
+
+for(i in 1:length(aces)) {
+  dataset = names(aces)[[i]]
+  print(dataset)
+
+  ace = aces[[i]]
+  markers = all.markers[[i]]
+  true_labels = ace$Labels
+  
+  mm = ACTIONet:::.preprocess_annotation_markers(lapply(markers, toupper), rownames(ace))
+  markers = apply(mm, 2, function(x) toupper(rownames(mm)[x > 0]))
+  
+  
+  annot = annotate.cells.using.markers(ace, markers)
+  labels[[dataset]] = annot$Label
+  scores[[dataset]] = annot$Enrichment
+
+  perf[[dataset]] = assess.annotation(ace, labels = labels[[dataset]], true_labels = true_labels, scores = scores[[dataset]], exp_name = paste(dataset, method, sep = "_"))
+}
+perfs = do.call(rbind, perf)
+readr::write_rds(perfs, "~/results/ACTIONet_perfs.rds")
+readr::write_rds(scores, "~/results/ACTIONet_scores.rds")
+readr::write_rds(labels, "~/results/ACTIONet_labels.rds")
+
+```
+
