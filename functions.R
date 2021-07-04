@@ -16,7 +16,8 @@ run_CellAssign <- function(ace, marker) {
                                      verbose = TRUE)
   
   Labels <- celltypes(cellassign.fit)
-  scores = sapply(split(1:ncol(ace), Labels), function(idx) as.numeric(sparseVector(1, idx, ncol(ace))))
+  #scores = sapply(split(1:ncol(ace), Labels), function(idx) as.numeric(sparseVector(1, idx, ncol(ace))))
+  scores = cellprobs(cellassign.fit)
   
   out = list(Labels = results$cell_labels, scores = scores)
   
